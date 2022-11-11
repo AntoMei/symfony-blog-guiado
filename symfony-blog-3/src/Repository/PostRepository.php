@@ -3,11 +3,11 @@
 namespace App\Repository;
 
 use App\Entity\Post;
+use App\Pagination\Paginator;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
-
 
 /**
  * @method Post|null find($id, $lockMode = null, $lockVersion = null)
@@ -46,6 +46,19 @@ class PostRepository extends ServiceEntityRepository
         }
     }
 
+
+    /**
+    * @return Post[] Returns an array of Post objects
+    */
+    public function findByTextPaginated(int $page, string $searchTerm)
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->andWhere("p.Content LIKE :val")
+            ->setParameter('val', '%'.$searchTerm.'%')
+            ->orderBy('p.PublishedAt', 'DESC');
+        
+        return (new Paginator($qb))->paginate($page);
+    }
     // /**
     //  * @return Post[] Returns an array of Post objects
     //  */
@@ -63,15 +76,30 @@ class PostRepository extends ServiceEntityRepository
     }
     */
 
-    /*
-    public function findOneBySomeField($value): ?Post
+
+    /**
+    * @return Post[] Returns an array of Post objects
+    */
+    public function findAllPaginated(int $page): Paginator
+    {
+        $qb =  $this->createQueryBuilder('p')
+            ->orderBy('p.PublishedAt', 'DESC')            
+        ;
+        
+        return (new Paginator($qb))->paginate($page);
+    }
+
+    /**
+    * @return Post[] Returns an array of Post objects
+    */
+    public function findRecents()
     {
         return $this->createQueryBuilder('p')
-            ->andWhere('p.exampleField = :val')
-            ->setParameter('val', $value)
+            ->orderBy('p.PublishedAt', 'DESC')
+            ->setMaxResults(5)
             ->getQuery()
-            ->getOneOrNullResult()
+            ->getResult()
         ;
     }
-    */
+    
 }
